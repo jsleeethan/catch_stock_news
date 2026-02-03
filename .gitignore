@@ -1,0 +1,27 @@
+# Virtual environment
+venv_catch_stock_news/
+
+# Database
+*.db
+
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

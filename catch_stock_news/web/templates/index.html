@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>증권 뉴스 키워드 알림</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-toggle {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 20px;
+        }
+
+        .btn-toggle.enabled {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .btn-toggle.disabled {
+            background-color: #bdc3c7;
+            color: #7f8c8d;
+        }
+
+        .keyword-list {
+            list-style: none;
+        }
+
+        .keyword-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .keyword-item:last-child {
+            border-bottom: none;
+        }
+
+        .keyword-item.disabled {
+            opacity: 0.5;
+        }
+
+        .keyword-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .keyword-text {
+            font-size: 16px;
+        }
+
+        .keyword-date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .keyword-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-dot.active {
+            background-color: #27ae60;
+        }
+
+        .status-dot.inactive {
+            background-color: #e74c3c;
+        }
+
+        .status-dot.warning {
+            background-color: #f39c12;
+        }
+
+        .status-detail {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .actions {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        /* Config section */
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .config-item {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .config-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .config-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        /* Alerts styles */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .card-header h2 {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .alert-list {
+            list-style: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        .alert-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .alert-title a {
+            color: #2c3e50;
+            text-decoration: none;
+        }
+
+        .alert-title a:hover {
+            color: #3498db;
+            text-decoration: underline;
+        }
+
+        .alert-meta {
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+            color: #666;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .alert-keywords {
+            background-color: #e8f4fd;
+            color: #2980b9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .alert-source {
+            background-color: #f0f0f0;
+            color: #666;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .keyword-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .keyword-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>증권 뉴스 키워드 알림</h1>
+        <p class="subtitle">네이버 증권 실시간 뉴스를 모니터링하고 키워드 매칭 시 Slack으로 알림을 보냅니다</p>
+
+        <div class="card">
+            <div class="status-bar">
+                <div class="status-info">
+                    <div class="status-indicator">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText">상태 확인 중...</span>
+                    </div>
+                    <div class="status-detail" id="statusDetail"></div>
+                </div>
+                <button class="btn-secondary" onclick="checkNow()">지금 확인</button>
+            </div>
+
+            <div class="config-grid">
+                <div class="config-item">
+                    <div class="config-label">체크 주기</div>
+                    <div class="config-value" id="configInterval">{{ config.check_interval }}분</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">알림 시간</div>
+                    <div class="config-value" id="configWindow">
+                        {% if config.notification_start %}
+                            {{ config.notification_start }} - {{ config.notification_end }}
+                        {% else %}
+                            24시간
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">주말 알림</div>
+                    <div class="config-value">{{ '활성' if config.enable_weekend else '비활성' }}</div>
+                </div>
+                <div class="config-item">
+                    <div class="config-label">유사도 임계값</div>
+                    <div class="config-value">{{ (config.similarity_threshold * 100)|int }}%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>키워드 추가</h2>
+            <div id="message" class="message"></div>
+            <form id="keywordForm" class="input-group">
+                <input type="text" id="keywordInput" placeholder="모니터링할 키워드 입력 (예: 삼성전자)" required>
+                <button type="submit" class="btn-primary">추가</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>등록된 키워드 (<span id="keywordCount">{{ keywords|length }}</span>개, 활성 <span id="enabledCount">{{ keywords|selectattr('enabled')|list|length }}</span>개)</h2>
+            <ul class="keyword-list" id="keywordList">
+                {% if keywords %}
+                    {% for keyword in keywords %}
+                    <li class="keyword-item {{ 'disabled' if not keyword.enabled else '' }}" data-id="{{ keyword.id }}">
+                        <div class="keyword-info">
+                            <span class="keyword-text">{{ keyword.keyword }}</span>
+                            <span class="keyword-date">{{ keyword.created_at }}</span>
+                        </div>
+                        <div class="keyword-actions">
+                            <button class="btn-toggle {{ 'enabled' if keyword.enabled else 'disabled' }}"
+                                    onclick="toggleKeyword({{ keyword.id }}, this)">
+                                {{ '활성' if keyword.enabled else '비활성' }}
+                            </button>
+                            <button class="btn-danger" onclick="deleteKeyword({{ keyword.id }})">삭제</button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="empty-message">등록된 키워드가 없습니다.</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>알림 내역 (<span id="alertCount">{{ alerts|length }}</span>개)</h2>
+                {% if alerts %}
+                <button class="btn-danger btn-small" onclick="clearAlerts()">전체 삭제</button>
+                {% endif %}
+            </div>
+            <ul class="alert-list" id="alertList">
+                {% if alerts %}
+                    {% for alert in alerts %}
+                    <li class="alert-item">
+                        <div class="alert-title">
+                            <a href="{{ alert.url }}" target="_blank">{{ alert.title }}</a>
+                        </div>
+                        <div class="alert-meta">
+                            <span class="alert-keywords">{{ alert.matched_keywords }}</span>
+                            {% if alert.news_source %}
+                            <span class="alert-source">{{ alert.news_source }}</span>
+                            {% endif %}
+                            <span>{{ alert.created_at }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="empty-message">알림 내역이 없습니다.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Show message
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = 'message ' + type;
+            messageEl.style.display = 'block';
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // Update status
+        async function updateStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('statusText');
+                const statusDetail = document.getElementById('statusDetail');
+
+                if (data.scheduler_running) {
+                    if (data.webhook_configured) {
+                        if (data.is_notification_time) {
+                            statusDot.className = 'status-dot active';
+                            statusText.textContent = '모니터링 중';
+                        } else {
+                            statusDot.className = 'status-dot warning';
+                            statusText.textContent = '알림 시간 외';
+                        }
+                    } else {
+                        statusDot.className = 'status-dot inactive';
+                        statusText.textContent = 'Slack 미설정';
+                    }
+                    statusDetail.textContent = `${data.check_interval}분 주기 | 활성 키워드 ${data.enabled_keyword_count}개 | ${data.notification_window}`;
+                } else {
+                    statusDot.className = 'status-dot inactive';
+                    statusText.textContent = '스케줄러 중지됨';
+                    statusDetail.textContent = '';
+                }
+            } catch (error) {
+                console.error('Status check failed:', error);
+            }
+        }
+
+        // Add keyword
+        document.getElementById('keywordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('keywordInput');
+            const keyword = input.value.trim();
+
+            if (!keyword) return;
+
+            try {
+                const response = await fetch('/keywords', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keyword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(data.message, 'success');
+                    input.value = '';
+                    location.reload();
+                } else {
+                    showMessage(data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('키워드 추가 중 오류가 발생했습니다.', 'error');
+            }
+        });
+
+        // Toggle keyword
+        async function toggleKeyword(id, button) {
+            try {
+                const response = await fetch('/keywords/' + id + '/toggle', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(data.message, 'success');
+
+                    // Update button UI
+                    if (data.enabled) {
+                        button.className = 'btn-toggle enabled';
+                        button.textContent = '활성';
+                        button.closest('.keyword-item').classList.remove('disabled');
+                    } else {
+                        button.className = 'btn-toggle disabled';
+                        button.textContent = '비활성';
+                        button.closest('.keyword-item').classList.add('disabled');
+                    }
+
+                    // Update counts
+                    updateStatus();
+                    updateEnabledCount();
+                } else {
+                    showMessage(data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('키워드 상태 변경 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        // Update enabled count
+        function updateEnabledCount() {
+            const enabledButtons = document.querySelectorAll('.btn-toggle.enabled');
+            document.getElementById('enabledCount').textContent = enabledButtons.length;
+        }
+
+        // Delete keyword
+        async function deleteKeyword(id) {
+            if (!confirm('이 키워드를 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await fetch('/keywords/' + id, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(data.message, 'success');
+                    location.reload();
+                } else {
+                    showMessage(data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('키워드 삭제 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        // Manual check
+        async function checkNow() {
+            try {
+                showMessage('뉴스 확인 중...', 'success');
+                const response = await fetch('/check-now', { method: 'POST' });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('뉴스 확인 완료!', 'success');
+                    // Reload to show new alerts
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showMessage(data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('뉴스 확인 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        // Clear all alerts
+        async function clearAlerts() {
+            if (!confirm('모든 알림 내역을 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await fetch('/alerts', { method: 'DELETE' });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(data.message, 'success');
+                    location.reload();
+                } else {
+                    showMessage(data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('알림 삭제 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        // Initial status check
+        updateStatus();
+        setInterval(updateStatus, 30000); // Update every 30 seconds
+    </script>
+</body>
+</html>

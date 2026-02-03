@@ -1,0 +1,16 @@
+[project]
+name = "catch-stock-news"
+version = "1.0.0"
+description = "네이버 증권 실시간 뉴스 키워드 모니터링 및 Slack 알림 시스템"
+requires-python = ">=3.9"
+dependencies = [
+    "Flask>=3.0.0",
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.12.2",
+    "APScheduler>=3.10.4",
+    "python-dotenv>=1.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
