@@ -1,0 +1,17 @@
+[Unit]
+Description=Catch Stock News Monitor - Naver Securities News Monitoring System
+After=network.target
+
+[Service]
+Type=simple
+User=jslee
+WorkingDirectory=/home/jslee/Workspace/catch_stock_news
+Environment=PATH=/home/jslee/Workspace/catch_stock_news/venv_catch_stock_news/bin:/usr/bin:/bin
+ExecStart=/home/jslee/Workspace/catch_stock_news/venv_catch_stock_news/bin/python app.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

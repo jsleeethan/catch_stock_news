@@ -59,6 +59,25 @@ python app.py
 
 Flask 서버가 `http://localhost:5001`에서 실행됩니다.
 
+### 4. 시스템 서비스로 실행 (Ubuntu)
+
+PC 부팅 시 자동 시작되도록 systemd 서비스로 등록할 수 있습니다.
+
+```bash
+# 설치 및 시작
+./install-service.sh
+
+# 서비스 관리
+sudo systemctl status catch-stock-news   # 상태 확인
+sudo systemctl stop catch-stock-news     # 중지
+sudo systemctl start catch-stock-news    # 시작
+sudo systemctl restart catch-stock-news  # 재시작
+sudo journalctl -u catch-stock-news -f   # 로그 보기 (실시간)
+
+# 제거
+./uninstall-service.sh
+```
+
 ## 웹 UI
 
 `http://localhost:5001` 접속 시 다음 기능을 사용할 수 있습니다:
